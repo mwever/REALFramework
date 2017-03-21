@@ -1,0 +1,9 @@
+File,LOC,SLOC-P,SLOC-L,MVG,BLOC,C&SLOC,CLOC,CWORD,HCLOC,HCWORD
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\SignificanceChunkCreator.java,62,52,45,5,9,0,1,4,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\SigProcessor.java,78,59,45,11,17,0,2,8,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\de\upb\crc901\wever\crcrealexecutor\CrcREALExecutor.java,125,107,84,14,18,0,0,0,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\de\upb\crc901\wever\crcrealexecutor\jfreechart\XYLineChart_AWT.java,102,82,74,5,17,2,3,13,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\de\upb\crc901\wever\crcrealexecutor\jfreechart\XYSeriesHelper.java,25,20,16,2,5,0,0,0,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\de\upb\crc901\wever\crcrealexecutor\json\JsonReport.java,64,51,41,6,13,0,0,0,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\de\upb\crc901\wever\crcrealexecutor\json\JsonReportDatum.java,134,103,78,20,31,0,0,0,0,0
+C:\Users\wever\Documents\Development\SFBWorkspace\CrcREALExecutor\src\de\upb\crc901\wever\crcrealexecutor\texplot\BestAvgPlotConverter.java,244,202,174,15,39,0,3,20,0,0

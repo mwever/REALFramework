@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project CrcREALWebInterpolator">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.workspace" value="${dir.buildfile}/.."/>
+    <property name="dir.jarfile" value="C:/Users/wever/Desktop/workerClient"/>
+    <target name="create_run_jar">
+        <jar destfile="${dir.jarfile}/CrcREALWebInterpolator2.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="CrcREALWebInterpolator2"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${dir.workspace}/CrcREALWebInterpolator/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/mysql-connector-java-5.1.40-bin.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/commons-codec-1.9.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/commons-logging-1.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/commons-math3-3.4.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/fluent-hc-4.5.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/jna-4.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/jna-platform-4.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALWebInterpolator/libs/apache-commons/commons-lang3-3.1.jar"/>
+            <fileset dir="${dir.workspace}/CrcREALUtil/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/commons-codec-1.9.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/commons-logging-1.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/commons-math3-3.4.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/fluent-hc-4.5.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/httpclient-4.5.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/httpclient-cache-4.5.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/httpclient-win-4.5.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/httpcore-4.4.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/httpmime-4.5.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/jna-4.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/apache-commons/jna-platform-4.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/json/javax.json-1.0.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/owner/owner-1.0.9.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/owner/owner-extras-1.0.9.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/owner/owner-java8-1.0.9.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/slf4j/log4j-1.2.17.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/slf4j/slf4j-log4j12-1.7.13.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/CrcREALUtil/libs/slf4j/slf4j-api-1.7.13.jar"/>
+        </jar>
+    </target>
+</project>

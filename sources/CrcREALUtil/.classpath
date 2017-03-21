@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="libs/apache-commons/commons-codec-1.9.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/commons-math3-3.4.1.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/fluent-hc-4.5.2.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/httpclient-4.5.2.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/httpclient-cache-4.5.2.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/httpclient-win-4.5.2.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/httpcore-4.4.4.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/httpmime-4.5.2.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/jna-4.1.0.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/jna-platform-4.1.0.jar"/>
+	<classpathentry kind="lib" path="libs/json/javax.json-1.0.4.jar"/>
+	<classpathentry kind="lib" path="libs/owner/owner-1.0.9.jar"/>
+	<classpathentry kind="lib" path="libs/owner/owner-extras-1.0.9.jar"/>
+	<classpathentry kind="lib" path="libs/owner/owner-java8-1.0.9.jar"/>
+	<classpathentry kind="lib" path="libs/slf4j/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="libs/slf4j/slf4j-log4j12-1.7.13.jar"/>
+	<classpathentry kind="lib" path="libs/slf4j/slf4j-api-1.7.13.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
