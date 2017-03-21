@@ -18,6 +18,8 @@ import org.moeaframework.core.operator.RandomInitialization;
 import org.moeaframework.core.operator.TournamentSelection;
 import org.moeaframework.core.operator.real.PM;
 import org.moeaframework.core.operator.real.SBX;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.upb.crc901.wever.crcreal.core.learner.algorithm.AbstractAlgorithm;
 import de.upb.crc901.wever.crcreal.core.learner.algorithm.AbstractModelAlgorithm;
@@ -29,6 +31,7 @@ import de.upb.crc901.wever.crcreal.util.SolutionUtil;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
 
 public class NSGAIIModelAlgorithm extends AbstractModelAlgorithm {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NSGAIIModelAlgorithm.class);
 
 	public static final String ID = "crc.real.algorithm.model.NSGAIIModelAlgorithm";
 	protected NSGAII algorithm = null;

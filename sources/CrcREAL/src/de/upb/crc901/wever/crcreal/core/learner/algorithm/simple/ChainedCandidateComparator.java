@@ -8,10 +8,10 @@ import de.upb.crc901.wever.crcreal.model.AbstractCandidate;
 
 public class ChainedCandidateComparator implements Comparator<AbstractCandidate> {
 
-	private final List<AbstractObjective> activeObjectivesToUseForComparison;
+	private final List<? extends AbstractObjective> activeObjectivesToUseForComparison;
 
-	public ChainedCandidateComparator(final List<AbstractObjective> pComparisonObjectiveList) {
-		this.activeObjectivesToUseForComparison = pComparisonObjectiveList;
+	public ChainedCandidateComparator(final List<? extends AbstractObjective> list) {
+		this.activeObjectivesToUseForComparison = list;
 	}
 
 	@Override

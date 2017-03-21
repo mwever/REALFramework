@@ -89,7 +89,7 @@ public class LearnerConfigLoader {
 				.mapToObj(x -> new AlgorithmConfig(NSGAIIModelAlgorithm.ID, modelObjectives, passiveModelObjectives, true, 50)).collect(Collectors.toList());
 		modelAlgorithmConfigs.add(new AlgorithmConfig(NSGAIIPreSatModelAlgorithm.ID, modelObjectives, passiveModelObjectives, true, 50));
 
-		final List<String> testObjectives = ListUtil.commaStringToList(DisagreementObjective.ID);
+		final List<String> testObjectives = ListUtil.commaStringToList(DisagreementObjective.ID + "," + MinTestLengthObjective.ID);
 		final List<String> passiveTestObjectives = new LinkedList<>();
 		final List<AlgorithmConfig> testAlgorithmConfigs = IntStream.range(0, 1)
 				.mapToObj(x -> new AlgorithmConfig(NSGAIITestAlgorithm.ID, testObjectives, passiveTestObjectives, false, 100)).collect(Collectors.toList());

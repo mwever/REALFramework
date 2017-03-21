@@ -1,8 +1,8 @@
 package de.upb.crc901.wever.crcreal.core.learner;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -13,6 +13,7 @@ import com.google.common.eventbus.Subscribe;
 import de.upb.crc901.wever.crcreal.core.AbstractREALEntity;
 import de.upb.crc901.wever.crcreal.core.learner.algorithm.AbstractModelAlgorithm;
 import de.upb.crc901.wever.crcreal.core.learner.algorithm.AbstractTestAlgorithm;
+import de.upb.crc901.wever.crcreal.core.learner.algorithm.simple.ChainedCandidateComparator;
 import de.upb.crc901.wever.crcreal.model.alphabet.Alphabet;
 import de.upb.crc901.wever.crcreal.model.automaton.CandidateModel;
 import de.upb.crc901.wever.crcreal.model.events.LearnerRequestEvent;
@@ -22,6 +23,7 @@ import de.upb.crc901.wever.crcreal.model.events.ModelPopulationEvent;
 import de.upb.crc901.wever.crcreal.model.events.OracleRequestEvent;
 import de.upb.crc901.wever.crcreal.model.events.OracleResultEvent;
 import de.upb.crc901.wever.crcreal.model.events.TestPopulationEvent;
+import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingExample;
 import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingSet;
 import de.upb.crc901.wever.crcreal.model.word.CandidateTest;
 import de.upb.crc901.wever.crcreal.model.word.Word;
@@ -46,14 +48,15 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	}
 
 	protected void run() {
-		LOGGER.debug("Execute Run for {} in round {}/{}");
+		LOGGER.debug("Execute Run for {} in round {}/{}", this.getIdentifier(), this.roundCounter, this.getTask().getNumberOfRounds());
 		this.beforeEachRound();
 
 		this.startTimeMeasure();
 		this.evolveModels();
-		LOGGER.debug("{} Round {} evolved models in {}ms.", this.getIdentifier(), this.roundCounter, this.getTimeMeasure());
+		LOGGER.debug("{} Round {}/{} evolved models in {}ms.", this.getIdentifier(), this.roundCounter, this.getTask().getNumberOfRounds(), this.getTimeMeasure());
 
 		if (this.roundCounter >= this.getTask().getNumberOfRounds()) {
+			LOGGER.debug("Send Learner Result Event");
 			this.sendLearnerResultEvent();
 			return;
 		}
@@ -148,7 +151,7 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	@Subscribe
 	public void rcvInitialLearningEvent(final LearnerRequestEvent e) {
 		LOGGER.debug("Received Initial Learning Event");
-		this.trainingData = e.getTrainingData();
+		this.trainingData = new TrainingSet(e.getTrainingData());
 		this.alphabet = Alphabet.readFromTrainingSet(this.trainingData);
 		this.numberOfStates = e.getNumberOfStates();
 		this.roundCounter = 0;
@@ -160,6 +163,9 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	@Subscribe
 	public final void rcvOracleResultEvent(final OracleResultEvent e) {
 		LOGGER.debug("Received oracle result event.");
+		for (final Word queriedWord : e.getLabelForRequestedWord().keySet()) {
+			this.trainingData.add(new TrainingExample(queriedWord, e.getLabelForRequestedWord().get(queriedWord)));
+		}
 		this.run();
 	}
 	/* END Receive Events */
@@ -176,7 +182,12 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 
 	protected void sendOracleQuery(final List<CandidateTest> testsForOracleRequest) {
 		LOGGER.debug("Send Event for Oracle Request");
-		final List<Word> wordsToSendToOracle = testsForOracleRequest.stream().map(x -> x.getTest()).collect(Collectors.toList());
+		final List<CandidateTest> testsForOracleRequestCopy = new LinkedList<>(testsForOracleRequest);
+		Collections.sort(testsForOracleRequestCopy, new ChainedCandidateComparator(testsForOracleRequestCopy.get(0).getObjectives()));
+
+		final List<Word> wordsToSendToOracle = new LinkedList<>();
+		wordsToSendToOracle.add(testsForOracleRequestCopy.get(0).getTest());
+
 		this.getEventBus().post(new OracleRequestEvent(wordsToSendToOracle));
 	}
 

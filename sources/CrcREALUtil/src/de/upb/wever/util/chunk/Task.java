@@ -4,21 +4,22 @@ public class Task {
 
 	private int chunkID;
 	private final int taskID;
-	private final int sampleID;
 	private final long rootSeed;
 
 	private final String algorithmID;
-	private final String challengerID;
+	private final String generatorID;
+	private final String oracleID;
 	private final String validatorID;
 	private final String supplierID;
 
-	private final int numberOfStates;
-	private final int sizeOfAlphabet;
 	private final int numberOfRounds;
-	private final int sizeOfTrainingSet;
-
 	private final int numberOfGenerations;
 	private final int sizeOfPopulation;
+	private final int sizeOfTrainingSet;
+	private final int maxTestLength;
+
+	private final int numberOfStates;
+	private final int sizeOfAlphabet;
 
 	private final EEvaluationType evaluationType;
 	private final EEvaluationCycle evaluationCycle;
@@ -36,11 +37,11 @@ public class Task {
 		final StringBuilder sb = new StringBuilder();
 
 		sb.append("taskID=" + this.taskID + ";");
-		sb.append("sampleID=" + this.sampleID + ";");
 		sb.append("rootSeed=" + this.rootSeed + ";");
 
 		sb.append("algorithmID=" + this.algorithmID + ";");
-		sb.append("challengerID=" + this.challengerID + ";");
+		sb.append("generatorID=" + this.generatorID + ";");
+		sb.append("oracleID=" + this.oracleID + ";");
 		sb.append("validatorID=" + this.validatorID + ";");
 		sb.append("supplierID=" + this.supplierID + ";");
 
@@ -50,6 +51,7 @@ public class Task {
 		sb.append("sizeOfTrainingSet=" + this.sizeOfTrainingSet + ";");
 		sb.append("numberOfGenerations=" + this.numberOfGenerations + ";");
 		sb.append("sizeOfPopulation=" + this.sizeOfPopulation + ";");
+		sb.append("maxTestLength=" + this.maxTestLength + ";");
 
 		sb.append("evaluationType=" + this.evaluationType + ";");
 		sb.append("evaluationCycle=" + this.evaluationCycle + ";");
@@ -58,15 +60,15 @@ public class Task {
 		return sb.toString();
 	}
 
-	public Task(final int pTaskID, final int pSampleID, final long pRootSeed, final String pAlgorithmID, final String pChallengerID, final String pValidatorID,
+	public Task(final int pTaskID, final long pRootSeed, final String pAlgorithmID, final String pGeneratorID, final String pOracleID, final String pValidatorID,
 			final String pSupplierID, final int pNumberOfStates, final int pSizeOfAlphabet, final int pNumberOfRounds, final int pSizeOfTrainingSet, final int pNumberOfGenerations,
-			final int pSizeOfPopulation, final EEvaluationType pEvaluationType, final EEvaluationCycle pEvaluationCycle, final int pEvaluationBound) {
+			final int pSizeOfPopulation, final int pMaxTestLength, final EEvaluationType pEvaluationType, final EEvaluationCycle pEvaluationCycle, final int pEvaluationBound) {
 		this.taskID = pTaskID;
-		this.sampleID = pSampleID;
 		this.rootSeed = pRootSeed;
 
 		this.algorithmID = pAlgorithmID;
-		this.challengerID = pChallengerID;
+		this.generatorID = pGeneratorID;
+		this.oracleID = pOracleID;
 		this.validatorID = pValidatorID;
 		this.supplierID = pSupplierID;
 
@@ -74,6 +76,7 @@ public class Task {
 		this.sizeOfAlphabet = pSizeOfAlphabet;
 		this.numberOfRounds = pNumberOfRounds;
 		this.sizeOfTrainingSet = pSizeOfTrainingSet;
+		this.maxTestLength = pMaxTestLength;
 
 		this.numberOfGenerations = pNumberOfGenerations;
 		this.sizeOfPopulation = pSizeOfPopulation;
@@ -95,8 +98,12 @@ public class Task {
 		return this.algorithmID;
 	}
 
-	public String getChallengerID() {
-		return this.challengerID;
+	public String getGeneratorID() {
+		return this.generatorID;
+	}
+
+	public String getOracleID() {
+		return this.oracleID;
 	}
 
 	public String getValidatorID() {
@@ -113,6 +120,10 @@ public class Task {
 
 	public int getSizeOfAlphabet() {
 		return this.sizeOfAlphabet;
+	}
+
+	public int getMaxTestLength() {
+		return this.maxTestLength;
 	}
 
 	public int getNumberOfRounds() {
@@ -139,10 +150,6 @@ public class Task {
 		return this.sizeOfPopulation;
 	}
 
-	public int getSampleID() {
-		return this.sampleID;
-	}
-
 	public long getRootSeed() {
 		return this.rootSeed;
 	}
@@ -150,11 +157,11 @@ public class Task {
 	public static Task readFrom(final String line) {
 		final String[] lineSplit = line.split(";");
 		int taskID = -1;
-		int sampleID = 1;
 		long rootSeed = 0;
 
 		String algorithmID = "";
-		String challengerID = "";
+		String generatorID = "";
+		String oracleID = "";
 		String validatorID = "";
 		String supplierID = "";
 
@@ -162,6 +169,7 @@ public class Task {
 		int sizeOfAlphabet = -1;
 		int numberOfRounds = -1;
 		int sizeOfTrainingSet = -1;
+		int maxTestLength = -1;
 
 		int numberOfGenerations = -1;
 		int sizeOfPopulation = -1;
@@ -181,17 +189,17 @@ public class Task {
 			case "taskID":
 				taskID = Integer.valueOf(keyValueSplit[1]);
 				break;
-			case "sampleID":
-				sampleID = Integer.valueOf(keyValueSplit[1]);
-				break;
 			case "rootSeed":
 				rootSeed = Long.valueOf(keyValueSplit[1]);
 				break;
 			case "algorithmID":
 				algorithmID = keyValueSplit[1];
 				break;
-			case "challengerID":
-				challengerID = keyValueSplit[1];
+			case "generatorID":
+				generatorID = keyValueSplit[1];
+				break;
+			case "oracleID":
+				oracleID = keyValueSplit[1];
 				break;
 			case "validatorID":
 				validatorID = keyValueSplit[1];
@@ -216,6 +224,9 @@ public class Task {
 				break;
 			case "sizeOfPopulation":
 				sizeOfPopulation = Integer.valueOf(keyValueSplit[1]);
+				break;
+			case "maxTestLength":
+				maxTestLength = Integer.valueOf(keyValueSplit[1]);
 				break;
 			case "evaluationBound":
 				evaluationBound = Integer.valueOf(keyValueSplit[1]);
@@ -252,7 +263,7 @@ public class Task {
 			}
 		}
 
-		return new Task(taskID, sampleID, rootSeed, algorithmID, challengerID, validatorID, supplierID, numberOfStates, sizeOfAlphabet, numberOfRounds, sizeOfTrainingSet,
-				numberOfGenerations, sizeOfPopulation, evaluationType, evaluationCycle, evaluationBound);
+		return new Task(taskID, rootSeed, algorithmID, generatorID, oracleID, validatorID, supplierID, numberOfStates, sizeOfAlphabet, numberOfRounds, sizeOfTrainingSet,
+				numberOfGenerations, sizeOfPopulation, maxTestLength, evaluationType, evaluationCycle, evaluationBound);
 	}
 }

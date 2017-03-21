@@ -4,6 +4,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.upb.crc901.wever.crcreal.model.automaton.CandidateModel;
 import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingSet;
 import de.upb.crc901.wever.crcreal.model.word.CandidateTest;
@@ -12,14 +15,17 @@ import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
 
 public abstract class AbstractPassiveLearner extends AbstractActiveLearner {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPassiveLearner.class);
+
 	protected AbstractPassiveLearner(final String pName, final IRandomGenerator pPRG) {
 		super(pName, pPRG);
 	}
 
 	/** Do not evolve tests since the oracle request is randomly generated. */
 	@Override
-	public void evolveTests() {
-		this.sendOracleQuery(this.getTestResults());
+	protected void evolveTests() {
+		LOGGER.debug("Evolve tests for passive learner");
+		return;
 	}
 
 	@Override
