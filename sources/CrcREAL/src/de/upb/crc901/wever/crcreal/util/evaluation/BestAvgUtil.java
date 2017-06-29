@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import de.upb.crc901.wever.crcreal.core.learner.objective.AbstractObjective;
-import de.upb.wever.util.bestavg.BestAvgDatum;
+import de.upb.crc901.wever.crcreal.util.bestavg.BestAvgDatum;
 
 public class BestAvgUtil {
 

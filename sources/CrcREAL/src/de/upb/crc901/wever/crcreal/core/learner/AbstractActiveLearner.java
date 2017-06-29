@@ -27,8 +27,8 @@ import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingExample;
 import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingSet;
 import de.upb.crc901.wever.crcreal.model.word.CandidateTest;
 import de.upb.crc901.wever.crcreal.model.word.Word;
+import de.upb.crc901.wever.crcreal.util.chunk.EEvaluationCycle;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
-import de.upb.wever.util.chunk.EEvaluationCycle;
 
 public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	private final static Logger LOGGER = LoggerFactory.getLogger(AbstractActiveLearner.class);

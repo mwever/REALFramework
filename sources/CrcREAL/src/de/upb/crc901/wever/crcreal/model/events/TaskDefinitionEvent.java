@@ -1,6 +1,6 @@
 package de.upb.crc901.wever.crcreal.model.events;
 
-import de.upb.wever.util.chunk.Task;
+import de.upb.crc901.wever.crcreal.util.chunk.Task;
 
 public class TaskDefinitionEvent {
 

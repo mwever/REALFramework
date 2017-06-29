@@ -4,8 +4,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import de.upb.crc901.wever.crcreal.model.events.TaskDefinitionEvent;
+import de.upb.crc901.wever.crcreal.util.chunk.Task;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
-import de.upb.wever.util.chunk.Task;
 
 public abstract class AbstractREALEntity {
 

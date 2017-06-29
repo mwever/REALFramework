@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import de.upb.crc901.wever.crcreal.core.control.AbstractControl;
 import de.upb.crc901.wever.crcreal.core.control.chunk.ChunkControl;
-import de.upb.wever.util.chunk.Chunk;
-import de.upb.wever.util.chunk.TaskBuilder;
+import de.upb.crc901.wever.crcreal.util.chunk.Chunk;
+import de.upb.crc901.wever.crcreal.util.chunk.TaskBuilder;
 
 public class ArrayControl extends AbstractControl {
 	private final static Logger LOGGER = LoggerFactory.getLogger(ArrayControl.class);

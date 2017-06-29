@@ -2,7 +2,7 @@ package de.upb.crc901.wever.crcreal.serializer.bestavg;
 
 import java.util.HashMap;
 
-import de.upb.wever.util.bestavg.BestAvgDatum;
+import de.upb.crc901.wever.crcreal.util.bestavg.BestAvgDatum;
 
 /**
  * Wrapper class for best avg results.

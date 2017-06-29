@@ -29,8 +29,8 @@ import de.upb.crc901.wever.crcreal.model.events.ShutdownEvent;
 import de.upb.crc901.wever.crcreal.model.events.TaskDefinitionEvent;
 import de.upb.crc901.wever.crcreal.model.events.TestPopulationEvent;
 import de.upb.crc901.wever.crcreal.util.Pair;
+import de.upb.crc901.wever.crcreal.util.chunk.Task;
 import de.upb.crc901.wever.crcreal.util.evaluation.BestAvgUtil;
-import de.upb.wever.util.chunk.Task;
 
 public class BestAvgStatsSerializer {
 
