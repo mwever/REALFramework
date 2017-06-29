@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.upb.crc901.wever.crcreal.core.AbstractREALEntity;
+import de.upb.crc901.wever.crcreal.util.MathUtil;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
-import de.upb.wever.util.MathUtil;
 
 public abstract class AbstractControl extends AbstractREALEntity {
 
