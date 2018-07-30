@@ -54,11 +54,11 @@ public interface ArrayControlConfig extends Config {
 	public int numberOfSamples();
 
 	@Key(NUMBER_OF_STATES)
-	@DefaultValue("3")
+	@DefaultValue("8")
 	public List<Integer> numberOfStates();
 
 	@Key(SIZE_OF_ALPHABET)
-	@DefaultValue("3")
+	@DefaultValue("8")
 	public List<Integer> sizeOfAlphabet();
 
 	@Key(SIZE_OF_TRAININGSET)

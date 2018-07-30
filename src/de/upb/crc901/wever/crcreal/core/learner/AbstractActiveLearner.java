@@ -3,8 +3,10 @@ package de.upb.crc901.wever.crcreal.core.learner;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.moeaframework.core.Solution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,10 @@ import de.upb.crc901.wever.crcreal.util.chunk.EEvaluationCycle;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
 
 public abstract class AbstractActiveLearner extends AbstractREALEntity {
+	enum FAKTQQueryContent {
+		SINGLEBEST, PARETO, ALL;
+	}
+	
 	private final static Logger LOGGER = LoggerFactory.getLogger(AbstractActiveLearner.class);
 
 	private final List<AbstractModelAlgorithm> modelAlgorithms = new LinkedList<>();
@@ -42,7 +48,10 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	private TrainingSet trainingData;
 	private Alphabet alphabet;
 	private int numberOfStates;
-
+	
+	private boolean faktQ = false;
+	private FAKTQQueryContent faktQQueryContent = FAKTQQueryContent.SINGLEBEST;
+	
 	protected AbstractActiveLearner(final String pName, final IRandomGenerator pPRG) {
 		super(pName, pPRG);
 	}
@@ -68,8 +77,24 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 		this.evolveTests();
 		LOGGER.debug("{} Round {} evolved tests in {}ms.", this.getIdentifier(), this.roundCounter, this.getTimeMeasure());
 
-		LOGGER.debug("Send Oracle Request for generated tests");
-		this.sendOracleQuery(this.getTestResults());
+		if(faktQ) {
+			switch (faktQQueryContent) {
+			case SINGLEBEST:
+				List<CandidateTest> testResults =this.getTestResults();
+				Collections.sort(testResults, new ChainedCandidateComparator(testResults.get(0).getObjectives()));
+				this.sendFaktQQuery(testResults);
+				break;
+			case PARETO:
+				this.sendFaktQQuery(this.getTestResults());
+				break;
+			case ALL:
+				this.sendFaktQQuery(this.getTestPopulation());
+				break;
+			}
+		} else {
+			LOGGER.debug("Send Oracle Request for generated tests");
+			this.sendOracleQuery(this.getTestResults());
+		}
 	}
 
 	protected void evolveModels() {
@@ -178,6 +203,20 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 			this.sendCurrentPopulationEvent("model", this.getTask().getNumberOfGenerations());
 		}
 		this.getEventBus().post(new LearnerResultEvent(this.getModelResults()));
+	}
+	
+	protected void sendFaktQQuery(final List<CandidateTest> testsForOracleRequest) {
+		LOGGER.debug("Send Event for FaktQ Oracle Request");
+		final List<CandidateTest> testsForOracleRequestCopy = new LinkedList<>(testsForOracleRequest);
+		Collections.sort(testsForOracleRequestCopy, new ChainedCandidateComparator(testsForOracleRequestCopy.get(0).getObjectives()));
+
+		final List<Word> wordsToSendToOracle = new LinkedList<>();
+		if((this.faktQAllTest && !this.faktQParetoSet) || this.faktQParetoSet) {
+			wordsToSendToOracle.addAll(testsForOracleRequestCopy.stream().map(x -> x.getTest()).collect(Collectors.toList()));
+		}
+		wordsToSendToOracle.add(testsForOracleRequestCopy.get(0).getTest());
+
+		this.getEventBus().post(new OracleRequestEvent(wordsToSendToOracle));
 	}
 
 	protected void sendOracleQuery(final List<CandidateTest> testsForOracleRequest) {
