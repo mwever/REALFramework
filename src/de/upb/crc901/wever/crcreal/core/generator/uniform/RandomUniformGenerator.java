@@ -24,7 +24,9 @@ public class RandomUniformGenerator extends AbstractGenerator {
 	public void rcvGenerateChallengeEvent(final GenerateTargetModelEvent e) {
 		super.rcvGenerateChallengeEvent(e);
 		LOGGER.debug("Received generate challenge event");
-		final FiniteAutomaton targetModel = CandidateModelUtil.generateRandomAutomatonWithNumberOfStates(e.getNumberOfStates(), e.getAlphabet(), this.getPRG());
+		final FiniteAutomaton targetModel = CandidateModelUtil
+				.generateRandomAutomatonWithNumberOfStates(e.getNumberOfStates(), e.getAlphabet(), this.getPRG());
+		System.out.println(targetModel.getLabeling());
 		this.getEventBus().post(new AnnounceTargetModelEvent(targetModel));
 	}
 

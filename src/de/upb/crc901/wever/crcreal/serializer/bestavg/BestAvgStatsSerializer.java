@@ -64,7 +64,8 @@ public class BestAvgStatsSerializer {
 		public void run() {
 			while (this.keepRunning || !this.getSuper().logBuffer.isEmpty()) {
 				if (!this.keepRunning) {
-					LOGGER.debug("Still logs to write in the buffer: {} logs to write", this.getSuper().logBuffer.size());
+					LOGGER.debug("Still logs to write in the buffer: {} logs to write",
+							this.getSuper().logBuffer.size());
 				}
 
 				try {
@@ -92,16 +93,19 @@ public class BestAvgStatsSerializer {
 		}
 	}
 
-	private Pair<BestAvgMap, BestAvgMap> processObjectiveResults(final List<? extends AbstractObjective> objectives, final List<? extends AbstractCandidate> population) {
+	private Pair<BestAvgMap, BestAvgMap> processObjectiveResults(final List<? extends AbstractObjective> objectives,
+			final List<? extends AbstractCandidate> population) {
 		final BestAvgMap realMap = new BestAvgMap();
 		final BestAvgMap heurMap = new BestAvgMap();
 
 		for (final AbstractObjective objective : objectives) {
 			if (objective.hasRealData()) {
-				final List<Double> realEvaluationValueList = population.stream().map(x -> x.getRealObjectiveValue(objective.getID())).collect(Collectors.toList());
+				final List<Double> realEvaluationValueList = population.stream()
+						.map(x -> x.getRealObjectiveValue(objective.getID())).collect(Collectors.toList());
 				realMap.put(objective.getID(), BestAvgUtil.computeBestAvgFromList(objective, realEvaluationValueList));
 			}
-			final List<Double> heurEvaluationValueList = population.stream().map(x -> x.getHeuristicObjectiveValue(objective.getID())).collect(Collectors.toList());
+			final List<Double> heurEvaluationValueList = population.stream()
+					.map(x -> x.getHeuristicObjectiveValue(objective.getID())).collect(Collectors.toList());
 			heurMap.put(objective.getID(), BestAvgUtil.computeBestAvgFromList(objective, heurEvaluationValueList));
 		}
 		return new Pair<>(realMap, heurMap);
@@ -111,15 +115,23 @@ public class BestAvgStatsSerializer {
 	public void rcvModelPopulationEvaluationEvent(final ModelPopulationEvent e) {
 		final List<AbstractModelObjective> objectives = new LinkedList<>();
 		final Set<AbstractObjective> objSet = new HashSet<>();
-		e.getPopulation().stream().map(x -> x.getObjectives()).forEach(objSet::addAll);
+		e.getPopulation().stream().map(x -> x.getObjectives()).forEach(x -> {
+			objSet.addAll(x);
+		});
+
 		try {
 			objSet.stream().map(x -> (AbstractModelObjective) x).forEach(objectives::add);
 		} catch (final ClassCastException exc) {
 			System.out.println(objSet);
 			System.exit(0);
 		}
-		final Pair<BestAvgMap, BestAvgMap> processingResult = this.processObjectiveResults(objectives, e.getPopulation());
-		this.writeLogFile(objectives, "model", e.getRoundCounter(), e.getGenerationCounter(), processingResult.getX(), processingResult.getY());
+
+		System.out.println(objSet);
+
+		final Pair<BestAvgMap, BestAvgMap> processingResult = this.processObjectiveResults(objectives,
+				e.getPopulation());
+		this.writeLogFile(objectives, "model", e.getRoundCounter(), e.getGenerationCounter(), processingResult.getX(),
+				processingResult.getY());
 	}
 
 	@Subscribe
@@ -134,12 +146,14 @@ public class BestAvgStatsSerializer {
 			System.out.println(objSet);
 			System.exit(0);
 		}
-		final Pair<BestAvgMap, BestAvgMap> processingResult = this.processObjectiveResults(objectives, e.getPopulation());
-		this.writeLogFile(objectives, "test", e.getRoundCounter(), e.getGenerationCounter(), processingResult.getX(), processingResult.getY());
+		final Pair<BestAvgMap, BestAvgMap> processingResult = this.processObjectiveResults(objectives,
+				e.getPopulation());
+		this.writeLogFile(objectives, "test", e.getRoundCounter(), e.getGenerationCounter(), processingResult.getX(),
+				processingResult.getY());
 	}
 
-	private void writeLogFile(final List<? extends AbstractObjective> objectives, final String type, final int round, final int generation, final BestAvgMap real,
-			final BestAvgMap heur) {
+	private void writeLogFile(final List<? extends AbstractObjective> objectives, final String type, final int round,
+			final int generation, final BestAvgMap real, final BestAvgMap heur) {
 		final String fileName = "task" + this.task.getTaskID() + ".log";
 
 		final StringBuilder sb = new StringBuilder();
@@ -153,6 +167,7 @@ public class BestAvgStatsSerializer {
 			}
 		}
 
+		System.out.println(sb.toString());
 		try {
 			this.logBuffer.put(new LogDatum(BASE_PATH + this.runID + "/" + fileName, sb.toString()));
 		} catch (final InterruptedException e) {
@@ -169,7 +184,8 @@ public class BestAvgStatsSerializer {
 			final File taskFile = new File(BASE_PATH + this.runID + "/task" + this.task.getTaskID() + ".log");
 			taskFile.getParentFile().mkdirs();
 
-			try (FileWriter writer = new FileWriter(BASE_PATH + this.runID + "/task" + this.task.getTaskID() + ".log")) {
+			try (FileWriter writer = new FileWriter(
+					BASE_PATH + this.runID + "/task" + this.task.getTaskID() + ".log")) {
 			} catch (final IOException e1) {
 				e1.printStackTrace();
 			}

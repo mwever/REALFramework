@@ -19,6 +19,7 @@ import de.upb.crc901.wever.crcreal.core.learner.algorithm.simple.SimpleTestAlgor
 import de.upb.crc901.wever.crcreal.core.learner.objective.ObjectiveRegistry;
 import de.upb.crc901.wever.crcreal.core.learner.objective.model.AllTestExampleObjective;
 import de.upb.crc901.wever.crcreal.core.learner.objective.model.CountSinkStatesObjective;
+import de.upb.crc901.wever.crcreal.core.learner.objective.model.FMeasureObjective;
 import de.upb.crc901.wever.crcreal.core.learner.objective.model.ModelSizeObjective;
 import de.upb.crc901.wever.crcreal.core.learner.objective.model.NegativeTestExampleObjective;
 import de.upb.crc901.wever.crcreal.core.learner.objective.model.PositiveTestExampleObjective;
@@ -28,6 +29,7 @@ import de.upb.crc901.wever.crcreal.core.learner.objective.test.MaxTestLengthObje
 import de.upb.crc901.wever.crcreal.core.learner.objective.test.MinTestLengthObjective;
 import de.upb.crc901.wever.crcreal.core.oracle.OracleRegistry;
 import de.upb.crc901.wever.crcreal.core.oracle.phonest.PHonestOracle;
+import de.upb.crc901.wever.crcreal.core.supplier.FAKTQSupplier;
 import de.upb.crc901.wever.crcreal.core.supplier.SupplierRegistry;
 import de.upb.crc901.wever.crcreal.core.validator.ValidatorRegistry;
 import de.upb.crc901.wever.crcreal.core.validator.exploration.ExplorationValidator;
@@ -57,8 +59,11 @@ public class REALManager {
 		this.config = ConfigCache.getOrCreate(REALConfig.class);
 
 		// Create asynchronous EventBus
-		// final LinkedBlockingQueue<Runnable> blockingQueue = new LinkedBlockingQueue<Runnable>();
-		// this.eventBus = new AsyncEventBus(new ThreadPoolExecutor(this.config.numberCoreThreads(), this.config.numberAdditionalThreads(), 0L, TimeUnit.MILLISECONDS,
+		// final LinkedBlockingQueue<Runnable> blockingQueue = new
+		// LinkedBlockingQueue<Runnable>();
+		// this.eventBus = new AsyncEventBus(new
+		// ThreadPoolExecutor(this.config.numberCoreThreads(),
+		// this.config.numberAdditionalThreads(), 0L, TimeUnit.MILLISECONDS,
 		// blockingQueue));
 		this.eventBus = new EventBus();
 
@@ -88,6 +93,7 @@ public class REALManager {
 		this.objectiveRegistry.register(new AllTestExampleObjective());
 		this.objectiveRegistry.register(new RelevantPartObjective());
 		this.objectiveRegistry.register(new CountSinkStatesObjective());
+		this.objectiveRegistry.register(new FMeasureObjective());
 
 		// test objectives
 		this.objectiveRegistry.register(new DisagreementObjective());
@@ -96,7 +102,8 @@ public class REALManager {
 
 		// end of registration of objectives
 
-		// register algorithms for performing requirements engineering by active learning
+		// register algorithms for performing requirements engineering by active
+		// learning
 
 		// model algorithms
 		this.algorithmRegistry.register(new SimpleModelAlgorithm());
@@ -121,6 +128,12 @@ public class REALManager {
 		this.oracleRegistry.register(new PHonestOracle("crc.real.oracle.07honestoracle", this.getPRG(), 0.7));
 		this.oracleRegistry.register(new PHonestOracle("crc.real.oracle.06honestoracle", this.getPRG(), 0.6));
 		this.oracleRegistry.register(new PHonestOracle("crc.real.oracle.05honestoracle", this.getPRG(), 0.5));
+
+		// register suppliers
+		this.supplierRegistry.register(new FAKTQSupplier("faktq-0", this.getPRG(), 0));
+		this.supplierRegistry.register(new FAKTQSupplier("faktq-1", this.getPRG(), 1));
+		this.supplierRegistry.register(new FAKTQSupplier("faktq-2", this.getPRG(), 2));
+		this.supplierRegistry.register(new FAKTQSupplier("faktq-3", this.getPRG(), 3));
 
 		// register validators
 		this.validatorRegistry.register(new ExplorationValidator(this.getPRG()));

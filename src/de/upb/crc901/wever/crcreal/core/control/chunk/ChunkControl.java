@@ -42,24 +42,27 @@ public class ChunkControl extends AbstractControl {
 	public void run() {
 		for (final Task chunkTask : this.chunk) {
 			try {
+				System.out.println("Execute task " + chunkTask.getTextualRepresentation());
 				this.startTimeMeasure();
 				final IRandomGenerator prg = new PseudoRandomGenerator(chunkTask.getRootSeed());
 
 				// Select instances needed for the next task
-				this.getEventBus().post(new InitialSetupEvent(chunkTask.getAlgorithmID(), chunkTask.getGeneratorID(), chunkTask.getOracleID(), chunkTask.getValidatorID(),
-						chunkTask.getSupplierID()));
+				this.getEventBus().post(new InitialSetupEvent(chunkTask.getAlgorithmID(), chunkTask.getGeneratorID(),
+						chunkTask.getOracleID(), chunkTask.getValidatorID(), chunkTask.getSupplierID()));
 				this.waitForEventDelivery();
 
 				// Set the initial seeds for pseudo randomness
-				this.getEventBus().post(new SeedInitializationEvent(prg.nextSeed(), prg.nextSeed(), prg.nextSeed(), prg.nextSeed()));
+				this.getEventBus().post(
+						new SeedInitializationEvent(prg.nextSeed(), prg.nextSeed(), prg.nextSeed(), prg.nextSeed()));
 				PRNG.setSeed(prg.nextSeed());
 
 				// Send task definition to all REAL entities
 				this.getEventBus().post(new TaskDefinitionEvent(chunkTask));
 				this.waitForEventDelivery();
 
-				LOGGER.info("Execute algorithm {} with g={}, p={}, r={}, #s={}, alphabetSize={}, #t={}", chunkTask.getAlgorithmID(), chunkTask.getNumberOfGenerations(),
-						chunkTask.getSizeOfPopulation(), chunkTask.getNumberOfRounds(), chunkTask.getNumberOfStates(), chunkTask.getSizeOfAlphabet(),
+				LOGGER.info("Execute algorithm {} with g={}, p={}, r={}, #s={}, alphabetSize={}, #t={}",
+						chunkTask.getAlgorithmID(), chunkTask.getNumberOfGenerations(), chunkTask.getSizeOfPopulation(),
+						chunkTask.getNumberOfRounds(), chunkTask.getNumberOfStates(), chunkTask.getSizeOfAlphabet(),
 						chunkTask.getSizeOfTrainingSet());
 
 				this.getEventBus().post(new StartTaskProcessingEvent());
@@ -89,7 +92,8 @@ public class ChunkControl extends AbstractControl {
 	}
 
 	/**
-	 * This methods puts the current thread to sleep to wait for the delivery of all initial setup events. This is only needed if the event bus is asynchronous.
+	 * This methods puts the current thread to sleep to wait for the delivery of all
+	 * initial setup events. This is only needed if the event bus is asynchronous.
 	 *
 	 * @throws InterruptedException
 	 */

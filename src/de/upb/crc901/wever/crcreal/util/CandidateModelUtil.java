@@ -16,11 +16,13 @@ public class CandidateModelUtil {
 	private final static Logger LOGGER = LoggerFactory.getLogger(CandidateModelUtil.class);
 
 	/**
-	 * This method generates a DFA target model that shall be inferred by the learning algorithm.
+	 * This method generates a DFA target model that shall be inferred by the
+	 * learning algorithm.
 	 *
 	 * @return Returns a DeterministicFiniteAutomaton representing the target model.
 	 */
-	public static FiniteAutomaton generateRandomAutomatonWithNumberOfStates(final int pNumberOfStates, final Alphabet alphabet, final IRandomGenerator prg) {
+	public static FiniteAutomaton generateRandomAutomatonWithNumberOfStates(final int pNumberOfStates,
+			final Alphabet alphabet, final IRandomGenerator prg) {
 		FiniteAutomaton generatedAutomaton = null;
 		try {
 			int numberOfIterationsNeeded = 0;
@@ -35,7 +37,8 @@ public class CandidateModelUtil {
 				}
 
 				// create target model candidate and check whether if every state is reachable
-				// then, check whether the automaton can be minimized. if so, we need to search for a new one
+				// then, check whether the automaton can be minimized. if so, we need to search
+				// for a new one
 				generatedAutomaton = new FiniteAutomaton(pNumberOfStates, transitionMatrixArray, alphabet);
 				if (!generatedAutomaton.allStatesReachable()) {
 					generatedAutomaton = null;
@@ -49,14 +52,17 @@ public class CandidateModelUtil {
 				}
 			} while (generatedAutomaton == null);
 
-			LOGGER.trace("Needed " + numberOfIterationsNeeded + " many iterations to produce a complete DFA with " + pNumberOfStates + " states.");
+			LOGGER.trace("Needed " + numberOfIterationsNeeded + " many iterations to produce a complete DFA with "
+					+ pNumberOfStates + " states.");
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
+
 		return generatedAutomaton;
 	}
 
-	public static FiniteAutomaton generateRandomAutomaton(final int pNumberOfStates, final Alphabet alphabet, final IRandomGenerator prg) {
+	public static FiniteAutomaton generateRandomAutomaton(final int pNumberOfStates, final Alphabet alphabet,
+			final IRandomGenerator prg) {
 		FiniteAutomaton generatedAutomaton = null;
 		final int[][] transitionMatrixArray = new int[pNumberOfStates][alphabet.size()];
 		for (int fromState = 0; fromState < pNumberOfStates; fromState++) {

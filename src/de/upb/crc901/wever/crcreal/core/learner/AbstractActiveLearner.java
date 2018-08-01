@@ -3,10 +3,10 @@ package de.upb.crc901.wever.crcreal.core.learner;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.moeaframework.core.Solution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +24,13 @@ import de.upb.crc901.wever.crcreal.model.events.ModelPopulationEvaluationEvent;
 import de.upb.crc901.wever.crcreal.model.events.ModelPopulationEvent;
 import de.upb.crc901.wever.crcreal.model.events.OracleRequestEvent;
 import de.upb.crc901.wever.crcreal.model.events.OracleResultEvent;
+import de.upb.crc901.wever.crcreal.model.events.SupplierRequestEvent;
+import de.upb.crc901.wever.crcreal.model.events.SupplierResultEvent;
 import de.upb.crc901.wever.crcreal.model.events.TestPopulationEvent;
 import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingExample;
 import de.upb.crc901.wever.crcreal.model.trainingdata.TrainingSet;
 import de.upb.crc901.wever.crcreal.model.word.CandidateTest;
+import de.upb.crc901.wever.crcreal.model.word.EWordLabel;
 import de.upb.crc901.wever.crcreal.model.word.Word;
 import de.upb.crc901.wever.crcreal.util.chunk.EEvaluationCycle;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
@@ -36,7 +39,7 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	enum FAKTQQueryContent {
 		SINGLEBEST, PARETO, ALL;
 	}
-	
+
 	private final static Logger LOGGER = LoggerFactory.getLogger(AbstractActiveLearner.class);
 
 	private final List<AbstractModelAlgorithm> modelAlgorithms = new LinkedList<>();
@@ -48,48 +51,75 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	private TrainingSet trainingData;
 	private Alphabet alphabet;
 	private int numberOfStates;
-	
-	private boolean faktQ = false;
+
+	private int oracleRequests = 0;
+	private int supplierRequests = 0;
+	private boolean queriedOracle = false;
+
+	private boolean faktQ = true;
 	private FAKTQQueryContent faktQQueryContent = FAKTQQueryContent.SINGLEBEST;
-	
+
 	protected AbstractActiveLearner(final String pName, final IRandomGenerator pPRG) {
 		super(pName, pPRG);
 	}
 
 	protected void run() {
-		LOGGER.debug("Execute Run for {} in round {}/{}", this.getIdentifier(), this.roundCounter, this.getTask().getNumberOfRounds());
+
+		LOGGER.debug("Execute Run for {} in round {}/{}", this.getIdentifier(), this.roundCounter,
+				this.getTask().getNumberOfRounds());
 		this.beforeEachRound();
+
+		long posExamples = this.getTrainingData().stream().filter(x -> x.getLabel() == EWordLabel.ACCEPTING).count();
+		long negExamples = this.getTrainingData().stream().filter(x -> x.getLabel() == EWordLabel.REJECTING).count();
+		System.out.println(
+				"Round " + this.roundCounter + " Accepting Words: " + posExamples + " Rejecting Words: " + negExamples
+						+ " SupplierQueries: " + this.supplierRequests + " OracleQueries: " + this.oracleRequests);
 
 		this.startTimeMeasure();
 		this.evolveModels();
-		LOGGER.debug("{} Round {}/{} evolved models in {}ms.", this.getIdentifier(), this.roundCounter, this.getTask().getNumberOfRounds(), this.getTimeMeasure());
+		LOGGER.debug("{} Round {}/{} evolved models in {}ms.", this.getIdentifier(), this.roundCounter,
+				this.getTask().getNumberOfRounds(), this.getTimeMeasure());
 
 		if (this.roundCounter >= this.getTask().getNumberOfRounds()) {
 			LOGGER.debug("Send Learner Result Event");
 			this.sendLearnerResultEvent();
 			return;
 		}
-		this.roundCounter++;
+
+		if (this.queriedOracle) {
+			this.roundCounter++;
+			this.queriedOracle = false;
+		}
 
 		this.beforeEvolvingTests();
 
 		this.startTimeMeasure();
 		this.evolveTests();
-		LOGGER.debug("{} Round {} evolved tests in {}ms.", this.getIdentifier(), this.roundCounter, this.getTimeMeasure());
+		LOGGER.debug("{} Round {} evolved tests in {}ms.", this.getIdentifier(), this.roundCounter,
+				this.getTimeMeasure());
 
-		if(faktQ) {
-			switch (faktQQueryContent) {
-			case SINGLEBEST:
-				List<CandidateTest> testResults =this.getTestResults();
+		if (this.faktQ) {
+			switch (this.faktQQueryContent) {
+			case SINGLEBEST: {
+				List<CandidateTest> testResults = this.getTestResults();
 				Collections.sort(testResults, new ChainedCandidateComparator(testResults.get(0).getObjectives()));
-				this.sendFaktQQuery(testResults);
+				List<CandidateTest> queryList = new LinkedList<>();
+				queryList.add(testResults.get(0));
+				this.sendSupplierRequestEvent(queryList);
 				break;
-			case PARETO:
-				this.sendFaktQQuery(this.getTestResults());
+			}
+			case PARETO: {
+				List<CandidateTest> testResults = this.getTestResults();
+				Collections.sort(testResults, new ChainedCandidateComparator(testResults.get(0).getObjectives()));
+				this.sendSupplierRequestEvent(testResults);
 				break;
-			case ALL:
-				this.sendFaktQQuery(this.getTestPopulation());
+			}
+			case ALL: {
+				List<CandidateTest> testResults = this.getTestPopulation();
+				Collections.sort(testResults, new ChainedCandidateComparator(testResults.get(0).getObjectives()));
+				this.sendSupplierRequestEvent(testResults);
 				break;
+			}
 			}
 		} else {
 			LOGGER.debug("Send Oracle Request for generated tests");
@@ -99,6 +129,7 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 
 	protected void evolveModels() {
 		LOGGER.trace("Evolve Models");
+
 		this.modelAlgorithms.stream().forEach(x -> x.initPopulation());
 
 		IntStream.range(0, this.getTask().getNumberOfGenerations()).forEach(generation -> {
@@ -109,7 +140,8 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 			this.generateCandidateModelsStep();
 		});
 
-		if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION || this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
+		if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION
+				|| this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
 			this.sendCurrentPopulationEvent("model", this.getTask().getNumberOfGenerations());
 		}
 		LOGGER.trace("Finished model evolution");
@@ -128,7 +160,8 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 			this.generateCandidateTestsStep(this.trainingData, this.getModelResults());
 		});
 
-		if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION || this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
+		if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION
+				|| this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
 			this.sendCurrentPopulationEvent("test", this.getTask().getNumberOfGenerations());
 		}
 		LOGGER.trace("Finished test evolution");
@@ -189,10 +222,35 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	public final void rcvOracleResultEvent(final OracleResultEvent e) {
 		LOGGER.debug("Received oracle result event.");
 		for (final Word queriedWord : e.getLabelForRequestedWord().keySet()) {
+			this.oracleRequests++;
 			this.trainingData.add(new TrainingExample(queriedWord, e.getLabelForRequestedWord().get(queriedWord)));
 		}
 		this.run();
 	}
+
+	@Subscribe
+	protected void rcvSupplierResultEvent(final SupplierResultEvent e) {
+		Map<Word, EWordLabel> wordMap = e.getLabelForRequestedWord();
+
+		boolean addedNewTrainingData = false;
+		for (Word key : wordMap.keySet()) {
+			if (wordMap.get(key) != EWordLabel.NONE) {
+				this.supplierRequests++;
+				addedNewTrainingData = true;
+				this.getTrainingData().add(new TrainingExample(key, wordMap.get(key)));
+			}
+		}
+
+		if (addedNewTrainingData) {
+			this.run();
+		} else {
+			this.queriedOracle = true;
+			List<Word> wordToLabelByOracle = new LinkedList<>();
+			wordToLabelByOracle.add(e.getOriginalRequest().getRequestedWord().get(0));
+			this.getEventBus().post(new OracleRequestEvent(wordToLabelByOracle));
+		}
+	}
+
 	/* END Receive Events */
 
 	/* XXX BEGIN Send Events */
@@ -204,25 +262,20 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 		}
 		this.getEventBus().post(new LearnerResultEvent(this.getModelResults()));
 	}
-	
-	protected void sendFaktQQuery(final List<CandidateTest> testsForOracleRequest) {
+
+	protected void sendSupplierRequestEvent(final List<CandidateTest> testsForOracleRequest) {
+		System.out.println("Send supplier request event for " + testsForOracleRequest.size() + " many words.");
 		LOGGER.debug("Send Event for FaktQ Oracle Request");
-		final List<CandidateTest> testsForOracleRequestCopy = new LinkedList<>(testsForOracleRequest);
-		Collections.sort(testsForOracleRequestCopy, new ChainedCandidateComparator(testsForOracleRequestCopy.get(0).getObjectives()));
-
-		final List<Word> wordsToSendToOracle = new LinkedList<>();
-		if((this.faktQAllTest && !this.faktQParetoSet) || this.faktQParetoSet) {
-			wordsToSendToOracle.addAll(testsForOracleRequestCopy.stream().map(x -> x.getTest()).collect(Collectors.toList()));
-		}
-		wordsToSendToOracle.add(testsForOracleRequestCopy.get(0).getTest());
-
-		this.getEventBus().post(new OracleRequestEvent(wordsToSendToOracle));
+		this.getEventBus().post(new SupplierRequestEvent(
+				testsForOracleRequest.stream().map(x -> x.getTest()).collect(Collectors.toList())));
 	}
 
 	protected void sendOracleQuery(final List<CandidateTest> testsForOracleRequest) {
 		LOGGER.debug("Send Event for Oracle Request");
+		this.queriedOracle = true;
 		final List<CandidateTest> testsForOracleRequestCopy = new LinkedList<>(testsForOracleRequest);
-		Collections.sort(testsForOracleRequestCopy, new ChainedCandidateComparator(testsForOracleRequestCopy.get(0).getObjectives()));
+		Collections.sort(testsForOracleRequestCopy,
+				new ChainedCandidateComparator(testsForOracleRequestCopy.get(0).getObjectives()));
 
 		final List<Word> wordsToSendToOracle = new LinkedList<>();
 		wordsToSendToOracle.add(testsForOracleRequestCopy.get(0).getTest());
@@ -234,16 +287,19 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 		switch (this.getTask().getEvaluationType()) {
 		case ALL:
 			if (pPopulationID.equals("test")) {
-				this.getEventBus().post(new TestPopulationEvent(this.roundCounter, generation, this.getTestPopulation()));
+				this.getEventBus()
+						.post(new TestPopulationEvent(this.roundCounter, generation, this.getTestPopulation()));
 			} else {
-				this.getEventBus().post(new ModelPopulationEvaluationEvent(new ModelPopulationEvent(this.roundCounter, generation, this.getModelPopulation())));
+				this.getEventBus().post(new ModelPopulationEvaluationEvent(
+						new ModelPopulationEvent(this.roundCounter, generation, this.getModelPopulation())));
 			}
 			break;
 		case ELITE:
 			if (pPopulationID.equals("test")) {
 				this.getEventBus().post(new TestPopulationEvent(this.roundCounter, generation, this.getTestResults()));
 			} else {
-				this.getEventBus().post(new ModelPopulationEvaluationEvent(new ModelPopulationEvent(this.roundCounter, generation, this.getModelResults())));
+				this.getEventBus().post(new ModelPopulationEvaluationEvent(
+						new ModelPopulationEvent(this.roundCounter, generation, this.getModelResults())));
 			}
 			break;
 		}
@@ -284,7 +340,8 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 
 	/* XXX BEGIN hooks for implementing classes */
 	/**
-	 * Hook for implementing actions that should be performed before making the first step in inference.
+	 * Hook for implementing actions that should be performed before making the
+	 * first step in inference.
 	 */
 	protected void beforeFirstStep() {
 

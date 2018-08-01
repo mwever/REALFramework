@@ -61,9 +61,11 @@ public class ExplorationValidator extends AbstractValidator {
 		final TrainingSet testData = this.testData;
 
 		for (final AbstractObjective objective : candidateDFA.getObjectives()) {
-			final double evaluationResult = ((AbstractModelObjective) objective).evaluate(testData, candidateDFA.getModel());
+			final double evaluationResult = ((AbstractModelObjective) objective).evaluate(testData,
+					candidateDFA.getModel());
 			candidateDFA.setRealObjectiveValue(objective.getID(), evaluationResult);
 		}
+
 	}
 
 	@Override
@@ -72,12 +74,14 @@ public class ExplorationValidator extends AbstractValidator {
 		candidateModels.parallelStream().forEach(x -> {
 			this.validate(x);
 		});
-		LOGGER.debug("Finished validation process for candidateModelList with testset size {} in {}ms", this.testData.size(), this.getTimeMeasure());
+		LOGGER.debug("Finished validation process for candidateModelList with testset size {} in {}ms",
+				this.testData.size(), this.getTimeMeasure());
 	}
 
 	private TrainingSet getTestData(final FiniteAutomaton targetDFA) {
 		final Alphabet alphabet = targetDFA.getAlphabet();
-		final Integer iterationBound = Math.min(this.getTask().getEvaluationBound(), (int) Math.pow(alphabet.size(), targetDFA.size() + alphabet.size() - 1));
+		final Integer iterationBound = Math.min(this.getTask().getEvaluationBound(),
+				(int) Math.pow(alphabet.size(), targetDFA.size() + alphabet.size() - 1));
 
 		LOGGER.trace("Iteration Bound: " + iterationBound);
 		final LinkedList<Word> openQueue = new LinkedList<>();
@@ -110,8 +114,8 @@ public class ExplorationValidator extends AbstractValidator {
 	@Subscribe
 	public void rcvOracleResultEvent(final OracleResultEvent e) {
 		LOGGER.debug("Received oracle result event");
-		final List<TrainingExample> newTrainingData = e.getLabelForRequestedWord().keySet().stream().map(x -> new TrainingExample(x, e.getLabelForRequestedWord().get(x)))
-				.collect(Collectors.toList());
+		final List<TrainingExample> newTrainingData = e.getLabelForRequestedWord().keySet().stream()
+				.map(x -> new TrainingExample(x, e.getLabelForRequestedWord().get(x))).collect(Collectors.toList());
 		this.testDataLock.lock();
 		try {
 			this.testData.removeAll(newTrainingData);

@@ -23,6 +23,7 @@ public interface ArrayControlConfig extends Config {
 	public static final String NUMBER_OF_GENERATIONS = KEY_PREFIX + "runConf.numberOfGenerations";
 	public final static String NUMBER_OF_SAMPLES = KEY_PREFIX + "runConf.numberOfSamples";
 	public final static String LIST_OF_ALGORITHMS = KEY_PREFIX + "runConf.algorithms";
+	public final static String LIST_OF_SUPPLIERS = KEY_PREFIX + "runConf.suppliers";
 
 	public static final String MAX_TEST_LENGTH = KEY_PREFIX + "maxTestLength";
 
@@ -46,7 +47,7 @@ public interface ArrayControlConfig extends Config {
 
 	/* START Run Configuration */
 	@Key(RANDOMNESS_SEED)
-	@DefaultValue("123567890")
+	@DefaultValue("12356789")
 	public int randomnessSeed();
 
 	@Key(NUMBER_OF_SAMPLES)
@@ -66,7 +67,7 @@ public interface ArrayControlConfig extends Config {
 	public List<Integer> sizeOfTrainingSet();
 
 	@Key(NUMBER_OF_ROUNDS)
-	@DefaultValue("10")
+	@DefaultValue("1000")
 	public List<Integer> numberOfRounds();
 
 	@Key(SIZE_OF_POPULATION)
@@ -74,12 +75,16 @@ public interface ArrayControlConfig extends Config {
 	public List<Integer> sizeOfPopulation();
 
 	@Key(NUMBER_OF_GENERATIONS)
-	@DefaultValue("100")
+	@DefaultValue("25")
 	public List<Integer> numberOfGenerations();
 
 	@Key(LIST_OF_ALGORITHMS)
-	@DefaultValue("AVRH4")
+	@DefaultValue("crc.real.learner.eemoo")
 	public List<String> algorithms();
+
+	@Key(LIST_OF_SUPPLIERS)
+	@DefaultValue("faktq-3")
+	public List<String> suppliers();
 	/* END Run Configuration */
 
 }

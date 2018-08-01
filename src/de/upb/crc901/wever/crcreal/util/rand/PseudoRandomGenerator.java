@@ -38,7 +38,7 @@ public class PseudoRandomGenerator implements IRandomGenerator {
 
 	@Override
 	public EWordLabel nextStateLabel() {
-		if (this.rand.nextBoolean()) {
+		if (this.rand.nextDouble() < 0.5) {
 			return EWordLabel.ACCEPTING;
 		} else {
 			return EWordLabel.REJECTING;
@@ -93,6 +93,7 @@ public class PseudoRandomGenerator implements IRandomGenerator {
 		this.rand.setSeed(this.seed);
 	}
 
+	@Override
 	public boolean nextHonestyDecision(final double honesty) {
 		final double randomDouble = this.rand.nextDouble();
 		if (randomDouble <= honesty) {

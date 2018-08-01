@@ -36,16 +36,19 @@ public class FiniteAutomaton {
 	private final Map<Integer, EWordLabel> stateLabels = new HashMap<>();
 
 	/**
-	 * Creates a DFA according to the given parameters. The initial state labels are all set to NONE.
+	 * Creates a DFA according to the given parameters. The initial state labels are
+	 * all set to NONE.
 	 *
 	 * @param pNumberOfStates
-	 *            The number of states of the automaton. Implicitly defines the states themselves.
+	 *            The number of states of the automaton. Implicitly defines the
+	 *            states themselves.
 	 * @param pTransitionMatrix
 	 *            The transition matrix delta for the automaton.
 	 * @param pAlphabet
 	 *            The alphabet of the automaton.
 	 */
-	public FiniteAutomaton(final int pNumberOfStates, final TransitionFunction pTransitionMatrix, final Alphabet pAlphabet) {
+	public FiniteAutomaton(final int pNumberOfStates, final TransitionFunction pTransitionMatrix,
+			final Alphabet pAlphabet) {
 		this.automatonID = AUTOMATON_COUNTER.getAndIncrement();
 		this.numberOfStates = pNumberOfStates;
 		this.transitionMatrix = pTransitionMatrix;
@@ -58,7 +61,9 @@ public class FiniteAutomaton {
 	}
 
 	public FiniteAutomaton(final FiniteAutomaton otherAutomaton) {
-		this(otherAutomaton.numberOfStates, new TransitionFunction(otherAutomaton.transitionMatrix), otherAutomaton.alphabet);
+		this(otherAutomaton.numberOfStates, new TransitionFunction(otherAutomaton.transitionMatrix),
+				otherAutomaton.alphabet);
+		this.stateLabels.putAll(otherAutomaton.stateLabels);
 	}
 
 	/**
@@ -66,14 +71,16 @@ public class FiniteAutomaton {
 	 *
 	 * @param example
 	 *            The input sequence to check the automaton.
-	 * @return Returns true iff the automaton's classification is the same es stated in the input sequence.
+	 * @return Returns true iff the automaton's classification is the same es stated
+	 *         in the input sequence.
 	 */
 	public boolean consistentWithTrainingExample(final TrainingExample example) {
 		return this.execute(example.getWord()).getLabel() == example.getLabel();
 	}
 
 	/**
-	 * Executes the DFA on the given input sequence and returns the respective label the automaton produces for the given input sequence.
+	 * Executes the DFA on the given input sequence and returns the respective label
+	 * the automaton produces for the given input sequence.
 	 *
 	 * @param pInputSequence
 	 *            Input sequence the automaton shall be executed on.
@@ -95,14 +102,16 @@ public class FiniteAutomaton {
 	 *
 	 * @param pInputSequence
 	 *            Input Sequence to run the DFA on starting in INITIAL_STATE.
-	 * @return Returns the trace route of states used to process the given input sequence.
+	 * @return Returns the trace route of states used to process the given input
+	 *         sequence.
 	 */
 	public List<Integer> traceOfDFARun(final Word pInputSequence) {
 		final List<Integer> traceRoute = new LinkedList<>();
 		traceRoute.add(INITIAL_STATE);
 
 		pInputSequence.stream().forEach(input -> {
-			traceRoute.add(this.transitionMatrix.getNextState(traceRoute.get(traceRoute.size() - 1), this.alphabet.indexOf(input)));
+			traceRoute.add(this.transitionMatrix.getNextState(traceRoute.get(traceRoute.size() - 1),
+					this.alphabet.indexOf(input)));
 		});
 
 		return traceRoute;
@@ -120,7 +129,8 @@ public class FiniteAutomaton {
 	/**
 	 * This method outputs a graph to visualize the automaton in graphstream.
 	 *
-	 * @return Graph containing all the nodes of the automaton and labeled edges wrt. the given alphabet.
+	 * @return Graph containing all the nodes of the automaton and labeled edges
+	 *         wrt. the given alphabet.
 	 */
 	public MultiGraph toGraphStream() {
 		final MultiGraph g = this.toGraph();
@@ -134,7 +144,8 @@ public class FiniteAutomaton {
 		// Double-check that we have not removed to much
 		final Dijkstra dijkstraDC = this.executeDijkstraOnGraph(g);
 		for (final Node n : g) {
-			assert (dijkstraDC.getPathLength(n) != Double.POSITIVE_INFINITY) : "Unreachable nodes in graph after minimizing the automaton.";
+			assert (dijkstraDC.getPathLength(
+					n) != Double.POSITIVE_INFINITY) : "Unreachable nodes in graph after minimizing the automaton.";
 		}
 
 		return g;
@@ -142,7 +153,8 @@ public class FiniteAutomaton {
 
 	private Set<Edge> getNonTraversableEdges(final Graph g, final Dijkstra dijkstra) {
 		return g.getEdgeSet().stream().filter(x -> {
-			return (dijkstra.getPathLength(x.getNode0()) == Double.POSITIVE_INFINITY || dijkstra.getPathLength(x.getNode1()) == Double.POSITIVE_INFINITY);
+			return (dijkstra.getPathLength(x.getNode0()) == Double.POSITIVE_INFINITY
+					|| dijkstra.getPathLength(x.getNode1()) == Double.POSITIVE_INFINITY);
 		}).collect(Collectors.toSet());
 
 	}
@@ -185,9 +197,11 @@ public class FiniteAutomaton {
 			n.setAttribute("ui.class", "standard");
 
 			if (this.getLabelOfState(x) == EWordLabel.ACCEPTING) {
-				n.setAttribute("ui.style", "fill-color: #00dd00; text-size: 20px; size: 30px; shape: circle; stroke-mode: plain;");
+				n.setAttribute("ui.style",
+						"fill-color: #00dd00; text-size: 20px; size: 30px; shape: circle; stroke-mode: plain;");
 			} else {
-				n.setAttribute("ui.style", "fill-color: #dd0000; text-size: 20px; size: 30px; shape: circle; stroke-mode: plain;");
+				n.setAttribute("ui.style",
+						"fill-color: #dd0000; text-size: 20px; size: 30px; shape: circle; stroke-mode: plain;");
 			}
 		});
 
@@ -205,7 +219,8 @@ public class FiniteAutomaton {
 			}
 
 			for (final Integer targetNode : targetNodeToInputs.keySet()) {
-				final Edge e = g.addEdge(u + "->" + targetNode + ":" + targetNodeToInputs.get(targetNode), u + "", targetNode + "", true);
+				final Edge e = g.addEdge(u + "->" + targetNode + ":" + targetNodeToInputs.get(targetNode), u + "",
+						targetNode + "", true);
 
 				String label = "";
 				for (final Integer input : targetNodeToInputs.get(targetNode)) {

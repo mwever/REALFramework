@@ -16,4 +16,9 @@ public class SupplierRegistry extends AbstractRegistry<ASupplier> {
 		this.activateListener(e.getSupplierID());
 	}
 
+	public void register(final ASupplier supplier) {
+		supplier.setEventBus(this.getEventBus());
+		this.register(supplier.getIdentifier(), supplier);
+	}
+
 }

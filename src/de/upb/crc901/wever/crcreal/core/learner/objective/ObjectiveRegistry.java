@@ -28,7 +28,7 @@ public class ObjectiveRegistry {
 		if (!this.objectiveCache.containsKey(pIdentifier)) {
 			throw new IllegalArgumentException("Unknown identifier for getting objective function: " + pIdentifier);
 		}
-		return this.objectiveCache.get(pIdentifier).newInstance();
+		return this.objectiveCache.get(pIdentifier);
 	}
 
 }

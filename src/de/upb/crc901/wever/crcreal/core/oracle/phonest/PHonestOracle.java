@@ -43,9 +43,11 @@ public class PHonestOracle extends AbstractOracle {
 	 * C'tor for instantiating an oracle with a certain honesty proportion.
 	 *
 	 * @param pPRG
-	 *            Random generator, might be some seeded pseudo random generator for reproducability
+	 *            Random generator, might be some seeded pseudo random generator for
+	 *            reproducability
 	 * @param pHonesty
-	 *            Takes values between 0 and 1 and denotes the proportion of honest answers on average.
+	 *            Takes values between 0 and 1 and denotes the proportion of honest
+	 *            answers on average.
 	 */
 	public PHonestOracle(final String pName, final IRandomGenerator pPRG, final double pHonesty) {
 		super(pName, pPRG);
@@ -58,8 +60,10 @@ public class PHonestOracle extends AbstractOracle {
 	@Override
 	public void rcvStartTaskProcessingEvent(final StartTaskProcessingEvent e) {
 		LOGGER.trace("Received StartTaskProcessingEvent, Post GenerateTargetModelEvent");
-		this.getEventBus().post(new GenerateTargetModelEvent(this.getTask().getNumberOfStates(), AlphabetUtil.getAlphabetOfSize(this.getTask().getSizeOfAlphabet()),
-				this.getTask().getSizeOfTrainingSet()));
+		this.getEventBus()
+				.post(new GenerateTargetModelEvent(this.getTask().getNumberOfStates(),
+						AlphabetUtil.getAlphabetOfSize(this.getTask().getSizeOfAlphabet()),
+						this.getTask().getSizeOfTrainingSet()));
 	}
 
 	@Override
@@ -67,7 +71,8 @@ public class PHonestOracle extends AbstractOracle {
 		LOGGER.trace("Received AnnounceTargetModelEvent");
 		this.targetModel = e.getTargetModel();
 
-		final TrainingSet trainingData = this.drawSampleSequences(this.targetModel, this.getTask().getSizeOfTrainingSet(), this.getTask().getSizeOfAlphabet());
+		final TrainingSet trainingData = this.drawSampleSequences(this.targetModel,
+				this.getTask().getSizeOfTrainingSet(), this.getTask().getSizeOfAlphabet());
 		LOGGER.debug("Produced training data. Send initial learning event.");
 		this.getEventBus().post(new LearnerRequestEvent(this.getTask().getNumberOfStates(), trainingData));
 	}
@@ -111,13 +116,15 @@ public class PHonestOracle extends AbstractOracle {
 	 *            The amount of sequences that shall be drawn.
 	 * @return Returns a list of labeled InputSequences.
 	 */
-	private TrainingSet drawSampleSequences(final FiniteAutomaton targetModel, final int numberOfSequences, final int alphabetSize) {
+	private TrainingSet drawSampleSequences(final FiniteAutomaton targetModel, final int numberOfSequences,
+			final int alphabetSize) {
 		final Set<List<Integer>> sampleSet = new HashSet<>();
 
 		IntStream.range(0, numberOfSequences).forEach(x -> {
 			final List<Integer> drawnInputSequence = new LinkedList<>();
 			do {
-				final int lengthOfInputSequence = this.getPRG().nextInputSequenceLength(this.getTask().getMaxTestLength(), alphabetSize);
+				final int lengthOfInputSequence = this.getPRG()
+						.nextInputSequenceLength(this.getTask().getMaxTestLength(), alphabetSize);
 				drawnInputSequence.clear();
 				IntStream.range(0, lengthOfInputSequence).forEach(y -> {
 					drawnInputSequence.add(this.getPRG().nextInputSymbol(targetModel.getAlphabet().size()));
@@ -127,7 +134,8 @@ public class PHonestOracle extends AbstractOracle {
 		});
 
 		return new TrainingSet(sampleSet.stream().map(x -> {
-			final Word inputList = new Word(x.stream().map(y -> targetModel.getAlphabet().get(y)).collect(Collectors.toList()));
+			final Word inputList = new Word(
+					x.stream().map(y -> targetModel.getAlphabet().get(y)).collect(Collectors.toList()));
 			return new TrainingExample(inputList, targetModel.execute(inputList).getLabel());
 		}).collect(Collectors.toList()));
 	}
