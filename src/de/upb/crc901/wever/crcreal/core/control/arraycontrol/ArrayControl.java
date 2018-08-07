@@ -10,17 +10,21 @@ import de.upb.crc901.wever.crcreal.core.REALManager;
 import de.upb.crc901.wever.crcreal.core.control.AbstractControl;
 import de.upb.crc901.wever.crcreal.core.control.chunk.ChunkControl;
 import de.upb.crc901.wever.crcreal.serializer.bestavg.BestAvgStatsSerializer;
-import de.upb.crc901.wever.crcreal.util.chunk.Chunk;
 import de.upb.crc901.wever.crcreal.util.chunk.EEvaluationCycle;
 import de.upb.crc901.wever.crcreal.util.chunk.EEvaluationType;
+import de.upb.crc901.wever.crcreal.util.chunk.REALTask;
+import de.upb.crc901.wever.crcreal.util.chunk.RealChunk;
 import de.upb.crc901.wever.crcreal.util.chunk.TaskBuilder;
+import de.upb.crc901.wever.model.ExperimentRunnerConfig;
 
 public class ArrayControl extends AbstractControl {
 	private final static Logger LOGGER = LoggerFactory.getLogger(ArrayControl.class);
 	private static final String ID = "crc.real.control.array";
 
 	private final ArrayControlConfig config;
-	private Chunk arrayChunk;
+	private final ExperimentRunnerConfig runConfig = ConfigCache.getOrCreate(ExperimentRunnerConfig.class);
+
+	private RealChunk arrayChunk;
 
 	public ArrayControl() {
 		super(ID);
@@ -36,9 +40,9 @@ public class ArrayControl extends AbstractControl {
 		chunkControl.run();
 	}
 
-	private Chunk createChunkFromConfig() {
+	private RealChunk createChunkFromConfig() {
 		LOGGER.trace("Create chunk out from array control config");
-		final Chunk chunkCompiledFromConfig = new Chunk();
+		final RealChunk chunkCompiledFromConfig = new RealChunk();
 
 		this.config.numberOfStates().stream().forEach(numberOfStates -> {
 			this.config.sizeOfAlphabet().stream().forEach(sizeOfAlphabet -> {
@@ -47,23 +51,24 @@ public class ArrayControl extends AbstractControl {
 						this.config.numberOfGenerations().forEach(numberOfGenerations -> {
 							this.config.algorithms().stream().forEach(algorithmID -> {
 								this.config.numberOfRounds().stream().forEach(numberOfRounds -> {
-									this.config.suppliers().stream().forEach(supplier -> {
-										IntStream.range(0, this.config.numberOfSamples()).forEach(sampleNumber -> {
-											chunkCompiledFromConfig.add(TaskBuilder.getInstance()
-													.setNumberOfGenerations(numberOfGenerations)
-													.setSizeOfPopulation(sizeOfPopulation)
-													.setSizeOfAlphabet(sizeOfAlphabet)
-													.setSizeOfTrainingSet(sizeOfTrainingSet).setAlgorithmID(algorithmID)
-													.setNumberOfRounds(numberOfRounds).setTaskID(sampleNumber)
-													.setNumberOfStates(numberOfStates).setSupplierID(supplier)
-													.setGeneratorID("crc.real.generator.randomUniformGenerator")
-													.setValidatorID("crc.real.validator.explorationvalidator")
-													.setEvaluationBound(this.config.evalBound())
-													.setEvaluationCycle(EEvaluationCycle.ROUND)
-													.setEvaluationType(EEvaluationType.ALL)
-													.setMaxTestLength(this.config.maxTestLength())
-													.setOracleID("crc.real.oracle.10honestoracle").toTask());
-										});
+									IntStream.range(0, this.config.numberOfSamples()).forEach(sampleNumber -> {
+
+										REALTask t = TaskBuilder.getInstance()
+												.setNumberOfGenerations(numberOfGenerations)
+												.setSizeOfPopulation(sizeOfPopulation).setSizeOfAlphabet(sizeOfAlphabet)
+												.setSizeOfTrainingSet(sizeOfTrainingSet).setAlgorithmID(algorithmID)
+												.setNumberOfRounds(numberOfRounds).setTaskID(sampleNumber)
+												.setNumberOfStates(numberOfStates)
+												.setSupplierID(this.runConfig.supplier())
+												.setGeneratorID("crc.real.generator.randomUniformGenerator")
+												.setValidatorID("crc.real.validator.explorationvalidator")
+												.setEvaluationBound(this.config.evalBound())
+												.setRootSeed(this.runConfig.seed())
+												.setEvaluationCycle(EEvaluationCycle.ROUND)
+												.setEvaluationType(EEvaluationType.ELITE)
+												.setMaxTestLength(this.config.maxTestLength())
+												.setOracleID("crc.real.oracle.10honestoracle").toTask();
+										chunkCompiledFromConfig.add(t);
 									});
 								});
 							});
@@ -72,7 +77,10 @@ public class ArrayControl extends AbstractControl {
 				});
 			});
 		});
+
+		System.out.println("Array Control compiled a set of " + chunkCompiledFromConfig.size() + " runs.");
 		return chunkCompiledFromConfig;
+
 	}
 
 	public static void main(final String[] args) {

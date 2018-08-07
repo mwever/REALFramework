@@ -4,7 +4,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import de.upb.crc901.wever.crcreal.model.events.TaskDefinitionEvent;
-import de.upb.crc901.wever.crcreal.util.chunk.Task;
+import de.upb.crc901.wever.crcreal.util.chunk.REALTask;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
 
 public abstract class AbstractREALEntity {
@@ -13,7 +13,7 @@ public abstract class AbstractREALEntity {
 	private EventBus eventBus;
 	private final IRandomGenerator prg;
 
-	private Task task;
+	private REALTask task;
 
 	private long startTime;
 
@@ -43,7 +43,7 @@ public abstract class AbstractREALEntity {
 		return this.prg;
 	}
 
-	protected Task getTask() {
+	protected REALTask getTask() {
 		return this.task;
 	}
 

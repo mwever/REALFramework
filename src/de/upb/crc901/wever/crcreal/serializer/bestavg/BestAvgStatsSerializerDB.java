@@ -1,20 +1,18 @@
 package de.upb.crc901.wever.crcreal.serializer.bestavg;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import org.aeonbits.owner.ConfigCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +23,16 @@ import de.upb.crc901.wever.crcreal.core.learner.objective.AbstractObjective;
 import de.upb.crc901.wever.crcreal.core.learner.objective.AbstractTestObjective;
 import de.upb.crc901.wever.crcreal.model.AbstractCandidate;
 import de.upb.crc901.wever.crcreal.model.events.ModelPopulationEvent;
-import de.upb.crc901.wever.crcreal.model.events.ShutdownEvent;
-import de.upb.crc901.wever.crcreal.model.events.TaskDefinitionEvent;
 import de.upb.crc901.wever.crcreal.model.events.TestPopulationEvent;
 import de.upb.crc901.wever.crcreal.util.Pair;
 import de.upb.crc901.wever.crcreal.util.chunk.REALTask;
 import de.upb.crc901.wever.crcreal.util.evaluation.BestAvgUtil;
+import de.upb.crc901.wever.model.ExperimentRunnerConfig;
+import jaicore.basic.SQLAdapter;
 
-public class BestAvgStatsSerializer {
+public class BestAvgStatsSerializerDB {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(BestAvgStatsSerializer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(BestAvgStatsSerializerDB.class);
 
 	public static final String BASE_PATH = "evalresult/";
 	public static final String CONFIGLIST_FILE = "configlist.list";
@@ -42,55 +40,16 @@ public class BestAvgStatsSerializer {
 	private final Lock configListFileLock = new ReentrantLock();
 
 	private REALTask task;
-	private String runID;
+	private int runID;
 
 	private final LinkedBlockingQueue<LogDatum> logBuffer = new LinkedBlockingQueue<>();
-	private final LogDispatcher logDispatcher;
 
-	public BestAvgStatsSerializer() {
-		this.runID = "realRun" + System.currentTimeMillis();
-		this.logDispatcher = new LogDispatcher();
-		this.logDispatcher.start();
-	}
+	private final SQLAdapter adapter;
+	private final ExperimentRunnerConfig runConfig = ConfigCache.getOrCreate(ExperimentRunnerConfig.class);
 
-	private class LogDispatcher extends Thread {
-		private boolean keepRunning = true;
-
-		public void shutdown() {
-			this.keepRunning = false;
-		}
-
-		@Override
-		public void run() {
-			while (this.keepRunning || !this.getSuper().logBuffer.isEmpty()) {
-				if (!this.keepRunning) {
-					LOGGER.debug("Still logs to write in the buffer: {} logs to write",
-							this.getSuper().logBuffer.size());
-				}
-
-				try {
-					final LogDatum datum = this.getSuper().logBuffer.poll(5000, TimeUnit.MILLISECONDS);
-
-					if (datum != null) {
-						final File datumFile = new File(datum.getFile());
-						datumFile.getParentFile().mkdirs();
-
-						try (FileWriter writer = new FileWriter(datum.getFile(), true)) {
-							writer.write(datum.getLog() + "\n");
-						} catch (final IOException e) {
-							e.printStackTrace();
-						}
-					}
-				} catch (final InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			LOGGER.debug("Logdispatcher shut down correctly");
-		}
-
-		public BestAvgStatsSerializer getSuper() {
-			return BestAvgStatsSerializer.this;
-		}
+	public BestAvgStatsSerializerDB(final SQLAdapter adapter) {
+		this.adapter = adapter;
+		this.runID = this.runConfig.runID();
 	}
 
 	private Pair<BestAvgMap, BestAvgMap> processObjectiveResults(final List<? extends AbstractObjective> objectives,
@@ -126,8 +85,6 @@ public class BestAvgStatsSerializer {
 			System.exit(0);
 		}
 
-		System.out.println(objSet);
-
 		final Pair<BestAvgMap, BestAvgMap> processingResult = this.processObjectiveResults(objectives,
 				e.getPopulation());
 		this.writeLogFile(objectives, "model", e.getRoundCounter(), e.getGenerationCounter(), processingResult.getX(),
@@ -154,69 +111,39 @@ public class BestAvgStatsSerializer {
 
 	private void writeLogFile(final List<? extends AbstractObjective> objectives, final String type, final int round,
 			final int generation, final BestAvgMap real, final BestAvgMap heur) {
-		final String fileName = "task" + this.task.getTaskID() + ".log";
 
-		final StringBuilder sb = new StringBuilder();
-		sb.append("t=" + type);
-		sb.append("&r=" + round);
-		sb.append("&g=" + generation);
+		Map<String, String> entryMap = new HashMap<>();
+		entryMap.put("runId", this.runConfig.runID() + "");
+		entryMap.put("type", type);
+		entryMap.put("round", round + "");
+		entryMap.put("generation", generation + "");
+
 		for (final AbstractObjective objective : objectives) {
-			sb.append("&heur-" + objective.getID() + "=" + heur.get(objective.getID()));
+			entryMap.put("objectiveType", "heur");
+			entryMap.put("objective", objective.getID());
+			entryMap.put("objectiveValueBest", heur.get(objective.getID()).getBest() + "");
+			entryMap.put("objectiveValueAvg", heur.get(objective.getID()).getAverage() + "");
+
+			System.out.println(entryMap);
+			try {
+				this.adapter.insert("realevaluation", entryMap);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+
 			if (!real.isEmpty()) {
-				sb.append("&real-" + objective.getID() + "=" + real.get(objective.getID()));
+				entryMap.put("objectiveType", "real");
+				entryMap.put("objective", objective.getID());
+				entryMap.put("objectiveValueBest", real.get(objective.getID()).getBest() + "");
+				entryMap.put("objectiveValueAvg", real.get(objective.getID()).getAverage() + "");
+			}
+
+			try {
+				this.adapter.insert("realevaluation", entryMap);
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
 		}
-
-		System.out.println(sb.toString());
-		try {
-			this.logBuffer.put(new LogDatum(BASE_PATH + this.runID + "/" + fileName, sb.toString()));
-		} catch (final InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Subscribe
-	public void rcvTaskDefinitionEvent(final TaskDefinitionEvent e) {
-		this.configListFileLock.lock();
-		try {
-			this.task = e.getTask();
-			this.runID = "chunk" + this.task.getChunkID();
-			final File taskFile = new File(BASE_PATH + this.runID + "/task" + this.task.getTaskID() + ".log");
-			taskFile.getParentFile().mkdirs();
-
-			try (FileWriter writer = new FileWriter(
-					BASE_PATH + this.runID + "/task" + this.task.getTaskID() + ".log")) {
-			} catch (final IOException e1) {
-				e1.printStackTrace();
-			}
-			this.writeConfigFile();
-		} finally {
-			this.configListFileLock.unlock();
-		}
-	}
-
-	private void writeConfigFile() {
-		final String configFileName = BASE_PATH + this.runID + "/" + CONFIG_FILE;
-		final StringBuilder sb = new StringBuilder();
-		try (BufferedReader br = new BufferedReader(new FileReader("config/REALConfig.properties"))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				sb.append(line + "\n");
-			}
-		} catch (final IOException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			this.logBuffer.put(new LogDatum(configFileName, sb.toString()));
-		} catch (final InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Subscribe
-	public void rcvShutdownEvent(final ShutdownEvent e) {
-		LOGGER.debug("Shutdown logdispatcher");
-		this.logDispatcher.shutdown();
 	}
 
 }

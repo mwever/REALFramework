@@ -119,8 +119,8 @@ public class TaskBuilder {
 		return this;
 	}
 
-	public Task toTask() {
-		final Task taskToReturn = new Task(this.taskID, this.rootSeed, this.algorithmID, this.generatorID, this.oracleID, this.validatorID, this.supplierID, this.numberOfStates,
+	public REALTask toTask() {
+		final REALTask taskToReturn = new REALTask(this.taskID, this.rootSeed, this.algorithmID, this.generatorID, this.oracleID, this.validatorID, this.supplierID, this.numberOfStates,
 				this.sizeOfAlphabet, this.numberOfRounds, this.sizeOfTrainingSet, this.numberOfGenerations, this.sizeOfPopulation, this.maxTestLength, this.evaluationType,
 				this.evaluationCycle, this.evaluationBound);
 		taskToReturn.setChunkID(this.chunkID);

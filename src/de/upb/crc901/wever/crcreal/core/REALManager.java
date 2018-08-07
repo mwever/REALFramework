@@ -58,13 +58,6 @@ public class REALManager {
 		// Read config file
 		this.config = ConfigCache.getOrCreate(REALConfig.class);
 
-		// Create asynchronous EventBus
-		// final LinkedBlockingQueue<Runnable> blockingQueue = new
-		// LinkedBlockingQueue<Runnable>();
-		// this.eventBus = new AsyncEventBus(new
-		// ThreadPoolExecutor(this.config.numberCoreThreads(),
-		// this.config.numberAdditionalThreads(), 0L, TimeUnit.MILLISECONDS,
-		// blockingQueue));
 		this.eventBus = new EventBus();
 
 		this.rand = new PseudoRandomGenerator(this.config.randomnessSeed());

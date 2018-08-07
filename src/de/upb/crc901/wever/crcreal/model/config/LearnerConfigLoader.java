@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.aeonbits.owner.ConfigCache;
+
 import de.upb.crc901.wever.crcreal.core.REALManager;
 import de.upb.crc901.wever.crcreal.core.learner.GeneralActiveLearner;
 import de.upb.crc901.wever.crcreal.core.learner.GeneralPassiveLearner;
@@ -24,12 +26,15 @@ import de.upb.crc901.wever.crcreal.core.learner.objective.model.RelevantPartObje
 import de.upb.crc901.wever.crcreal.core.learner.objective.test.DisagreementObjective;
 import de.upb.crc901.wever.crcreal.core.learner.objective.test.MinTestLengthObjective;
 import de.upb.crc901.wever.crcreal.util.ListUtil;
+import de.upb.crc901.wever.model.ExperimentRunnerConfig;
 
 public class LearnerConfigLoader {
 
 	private static final String DEF_CONFIG_FILE = "config/algorithmConfig.json";
 
 	private final List<LearnerConfig> algorithmConfigList;
+
+	private final ExperimentRunnerConfig runConfig = ConfigCache.getOrCreate(ExperimentRunnerConfig.class);
 
 	public LearnerConfigLoader(final String pConfigFile) {
 		this.algorithmConfigList = new LinkedList<>();
@@ -118,8 +123,18 @@ public class LearnerConfigLoader {
 		// ListUtil.commaStringToList(AllTestExampleObjective.ID + "," +
 		// ModelSizeObjective.ID);
 		final List<String> modelObjectives = ListUtil.commaStringToList(
-				FMeasureObjective.ID + "," + ModelSizeObjective.ID + "," + AllTestExampleObjective.ID);
-		final List<String> passiveModelObjectives = ListUtil.commaStringToList(AllTestExampleObjective.ID);
+				AllTestExampleObjective.ID + "," + FMeasureObjective.ID + "," + ModelSizeObjective.ID);
+		final List<String> passiveModelObjectives = new LinkedList<>();
+		switch (this.runConfig.accMeasure()) {
+		case "accuracy":
+			passiveModelObjectives.add(FMeasureObjective.ID);
+			break;
+		case "fmeasure":
+			passiveModelObjectives.add(AllTestExampleObjective.ID);
+			break;
+		}
+
+		ListUtil.commaStringToList(FMeasureObjective.ID);
 		final List<AlgorithmConfig> modelAlgorithmConfigs = IntStream.range(0, 1).mapToObj(
 				x -> new AlgorithmConfig(NSGAIIModelAlgorithm.ID, modelObjectives, passiveModelObjectives, true, 50))
 				.collect(Collectors.toList());

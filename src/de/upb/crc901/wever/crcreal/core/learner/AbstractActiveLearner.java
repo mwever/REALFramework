@@ -1,12 +1,15 @@
 package de.upb.crc901.wever.crcreal.core.learner;
 
+import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.aeonbits.owner.ConfigCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +37,8 @@ import de.upb.crc901.wever.crcreal.model.word.EWordLabel;
 import de.upb.crc901.wever.crcreal.model.word.Word;
 import de.upb.crc901.wever.crcreal.util.chunk.EEvaluationCycle;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
+import de.upb.crc901.wever.model.ExperimentRunnerConfig;
+import de.upb.crc901.wever.model.REALRunner;
 
 public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	enum FAKTQQueryContent {
@@ -59,18 +64,45 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 	private boolean faktQ = true;
 	private FAKTQQueryContent faktQQueryContent = FAKTQQueryContent.SINGLEBEST;
 
+	private ExperimentRunnerConfig runConfig = ConfigCache.getOrCreate(ExperimentRunnerConfig.class);
+
 	protected AbstractActiveLearner(final String pName, final IRandomGenerator pPRG) {
 		super(pName, pPRG);
+		switch (this.runConfig.requestSet()) {
+		case "single":
+			this.faktQQueryContent = FAKTQQueryContent.SINGLEBEST;
+			break;
+		case "pareto":
+			this.faktQQueryContent = FAKTQQueryContent.PARETO;
+			break;
+		case "all":
+			this.faktQQueryContent = FAKTQQueryContent.ALL;
+			break;
+		}
 	}
 
 	protected void run() {
-
 		LOGGER.debug("Execute Run for {} in round {}/{}", this.getIdentifier(), this.roundCounter,
 				this.getTask().getNumberOfRounds());
 		this.beforeEachRound();
 
 		long posExamples = this.getTrainingData().stream().filter(x -> x.getLabel() == EWordLabel.ACCEPTING).count();
 		long negExamples = this.getTrainingData().stream().filter(x -> x.getLabel() == EWordLabel.REJECTING).count();
+		Map<String, String> trainingDataDBEntry = new HashMap<>();
+
+		trainingDataDBEntry.put("runID", this.runConfig.runID() + "");
+		trainingDataDBEntry.put("round", this.roundCounter + "");
+		trainingDataDBEntry.put("posExamples", posExamples + "");
+		trainingDataDBEntry.put("negExamples", negExamples + "");
+		trainingDataDBEntry.put("supplierQueries", this.supplierRequests + "");
+		trainingDataDBEntry.put("oracleQueries", this.oracleRequests + "");
+
+		try {
+			REALRunner.ADAPTER.insert("trainingdata", trainingDataDBEntry);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 		System.out.println(
 				"Round " + this.roundCounter + " Accepting Words: " + posExamples + " Rejecting Words: " + negExamples
 						+ " SupplierQueries: " + this.supplierRequests + " OracleQueries: " + this.oracleRequests);
@@ -81,12 +113,20 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 				this.getTask().getNumberOfRounds(), this.getTimeMeasure());
 
 		if (this.roundCounter >= this.getTask().getNumberOfRounds()) {
+			if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION
+					|| this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
+				this.sendCurrentPopulationEvent("model", this.getTask().getNumberOfGenerations());
+			}
 			LOGGER.debug("Send Learner Result Event");
 			this.sendLearnerResultEvent();
 			return;
 		}
 
 		if (this.queriedOracle) {
+			if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION
+					|| this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
+				this.sendCurrentPopulationEvent("model", this.getTask().getNumberOfGenerations());
+			}
 			this.roundCounter++;
 			this.queriedOracle = false;
 		}
@@ -129,7 +169,6 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 
 	protected void evolveModels() {
 		LOGGER.trace("Evolve Models");
-
 		this.modelAlgorithms.stream().forEach(x -> x.initPopulation());
 
 		IntStream.range(0, this.getTask().getNumberOfGenerations()).forEach(generation -> {
@@ -140,10 +179,6 @@ public abstract class AbstractActiveLearner extends AbstractREALEntity {
 			this.generateCandidateModelsStep();
 		});
 
-		if (this.getTask().getEvaluationCycle() == EEvaluationCycle.GENERATION
-				|| this.getTask().getEvaluationCycle() == EEvaluationCycle.ROUND) {
-			this.sendCurrentPopulationEvent("model", this.getTask().getNumberOfGenerations());
-		}
 		LOGGER.trace("Finished model evolution");
 	}
 

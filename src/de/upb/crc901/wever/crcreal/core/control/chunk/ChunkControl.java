@@ -18,8 +18,8 @@ import de.upb.crc901.wever.crcreal.model.events.SeedInitializationEvent;
 import de.upb.crc901.wever.crcreal.model.events.ShutdownEvent;
 import de.upb.crc901.wever.crcreal.model.events.StartTaskProcessingEvent;
 import de.upb.crc901.wever.crcreal.model.events.TaskDefinitionEvent;
-import de.upb.crc901.wever.crcreal.util.chunk.Chunk;
-import de.upb.crc901.wever.crcreal.util.chunk.Task;
+import de.upb.crc901.wever.crcreal.util.chunk.REALTask;
+import de.upb.crc901.wever.crcreal.util.chunk.RealChunk;
 import de.upb.crc901.wever.crcreal.util.rand.IRandomGenerator;
 import de.upb.crc901.wever.crcreal.util.rand.PseudoRandomGenerator;
 
@@ -29,10 +29,10 @@ public class ChunkControl extends AbstractControl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChunkControl.class);
 
-	private final Chunk chunk;
+	private final RealChunk chunk;
 	private final Semaphore nextRunSemaphore = new Semaphore(0);
 
-	public ChunkControl(final Chunk pChunk) {
+	public ChunkControl(final RealChunk pChunk) {
 		super(ID);
 		this.setNumberOfJobs(pChunk.size());
 		this.chunk = pChunk;
@@ -40,9 +40,9 @@ public class ChunkControl extends AbstractControl {
 
 	@Override
 	public void run() {
-		for (final Task chunkTask : this.chunk) {
+		for (final REALTask chunkTask : this.chunk) {
 			try {
-				System.out.println("Execute task " + chunkTask.getTextualRepresentation());
+				System.out.println("Execute task " + chunkTask.getStringRepresentation());
 				this.startTimeMeasure();
 				final IRandomGenerator prg = new PseudoRandomGenerator(chunkTask.getRootSeed());
 
@@ -68,13 +68,13 @@ public class ChunkControl extends AbstractControl {
 				this.getEventBus().post(new StartTaskProcessingEvent());
 
 				LOGGER.trace("ChunkControl WAIT for next run");
-				this.nextRunSemaphore.acquire();
+				// this.nextRunSemaphore.acquire();
 				LOGGER.trace("ChunkControl WAITED ENOUGH for next run");
 
 				this.jobDone();
 				this.writeJobStatus();
-			} catch (final InterruptedException e) {
-				LOGGER.error("{} {}", e.getMessage(), e.getStackTrace());
+				// } catch (final InterruptedException e) {
+				// LOGGER.error("{} {}", e.getMessage(), e.getStackTrace());
 			} catch (final Exception e) {
 				LOGGER.error("{} {}", e.getMessage(), e.getStackTrace());
 			}

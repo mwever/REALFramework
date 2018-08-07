@@ -13,7 +13,6 @@
 	<classpathentry kind="lib" path="libs/slf4j/slf4j-api-1.7.13.jar"/>
 	<classpathentry kind="lib" path="libs/moea/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="libs/moea/commons-codec-1.8.jar"/>
-	<classpathentry kind="lib" path="libs/moea/commons-lang3-3.1.jar"/>
 	<classpathentry kind="lib" path="libs/moea/commons-math3-3.4.1.jar"/>
 	<classpathentry kind="lib" path="libs/moea/jcommon-1.0.20.jar"/>
 	<classpathentry kind="lib" path="libs/moea/JMetal-4.3.jar"/>
@@ -27,6 +26,9 @@
 	<classpathentry kind="lib" path="libs/apache-commons/jna-platform-4.1.0.jar"/>
 	<classpathentry kind="lib" path="libs/moea/MOEAFramework-2.11.jar"/>
 	<classpathentry kind="lib" path="libs/graphstream/gs-core-1.3.jar"/>
+	<classpathentry kind="lib" path="libs/apache-commons/commons-lang3-3.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jaicore-basic"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jaicore-experiments"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -23,7 +23,6 @@ public interface ArrayControlConfig extends Config {
 	public static final String NUMBER_OF_GENERATIONS = KEY_PREFIX + "runConf.numberOfGenerations";
 	public final static String NUMBER_OF_SAMPLES = KEY_PREFIX + "runConf.numberOfSamples";
 	public final static String LIST_OF_ALGORITHMS = KEY_PREFIX + "runConf.algorithms";
-	public final static String LIST_OF_SUPPLIERS = KEY_PREFIX + "runConf.suppliers";
 
 	public static final String MAX_TEST_LENGTH = KEY_PREFIX + "maxTestLength";
 
@@ -75,16 +74,13 @@ public interface ArrayControlConfig extends Config {
 	public List<Integer> sizeOfPopulation();
 
 	@Key(NUMBER_OF_GENERATIONS)
-	@DefaultValue("25")
+	@DefaultValue("5")
 	public List<Integer> numberOfGenerations();
 
 	@Key(LIST_OF_ALGORITHMS)
 	@DefaultValue("crc.real.learner.eemoo")
 	public List<String> algorithms();
 
-	@Key(LIST_OF_SUPPLIERS)
-	@DefaultValue("faktq-3")
-	public List<String> suppliers();
 	/* END Run Configuration */
 
 }
